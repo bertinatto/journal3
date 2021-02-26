@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	journal "github.com/bertinatto/journal3"
-	"k8s.io/klog/v2"
 )
 
 var _ journal.JournalService = &JournalService{}
@@ -70,32 +69,49 @@ func (j *JournalService) FindPostByID(ctx context.Context, id int) (*journal.Pos
 		return nil, err
 	}
 
-	klog.Infof("fjb: %+v", *p)
-
 	return p, err
 
 }
 
-func findPostByID(ctx context.Context, tx *Tx, id int) (*journal.Post, error) {
-	posts, _, err := findPosts(ctx, tx, &journal.PostFilter{ID: &id})
+func (j *JournalService) FindPosts(ctx context.Context) ([]*journal.Post, error) {
+	tx, err := j.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	posts, n, err := findPosts(ctx, tx, &journal.PostFilter{})
 	if err != nil {
 		return nil, err
 	}
 
-	if len(posts) == 0 {
-		return nil, fmt.Errorf("%s", "not found")
+	if n == 0 {
+		return nil, fmt.Errorf("%s", "post not found")
+	}
+
+	return posts, nil
+}
+
+func findPostByID(ctx context.Context, tx *Tx, id int) (*journal.Post, error) {
+	posts, n, err := findPosts(ctx, tx, &journal.PostFilter{ID: &id})
+	if err != nil {
+		return nil, err
+	}
+
+	if n == 0 {
+		return nil, fmt.Errorf("%s", "post not found")
 	}
 
 	return posts[0], nil
 }
 
 func findPosts(ctx context.Context, tx *Tx, filter *journal.PostFilter) ([]*journal.Post, int, error) {
+	// where and args should always be mutate together
 	where, args := []string{"1 = 1"}, []interface{}{}
 	if v := filter.ID; v != nil {
 		where, args = append(where, "id = ?"), append(args, *v)
 	}
 
-	// Execue query with limiting WHERE clause and LIMIT/OFFSET injected.
 	rows, err := tx.QueryContext(ctx, `
 		SELECT
 		    id,
@@ -107,7 +123,7 @@ func findPosts(ctx context.Context, tx *Tx, filter *journal.PostFilter) ([]*jour
 		FROM posts
 		WHERE `+strings.Join(where, " AND ")+`
 		ORDER BY id ASC
-		`+FormatLimitOffset(filter.Limit, filter.Offset),
+		`+formatLimitAndOffset(filter.Limit, filter.Offset),
 		args...,
 	)
 	if err != nil {
@@ -115,7 +131,6 @@ func findPosts(ctx context.Context, tx *Tx, filter *journal.PostFilter) ([]*jour
 	}
 	defer rows.Close()
 
-	// Iterate over rows and deserialize into Dial objects.
 	var n int
 	posts := make([]*journal.Post, 0)
 	for rows.Next() {
@@ -139,9 +154,7 @@ func findPosts(ctx context.Context, tx *Tx, filter *journal.PostFilter) ([]*jour
 	return posts, n, nil
 }
 
-// FormatLimitOffset returns a SQL string for a given limit & offset.
-// Clauses are only added if limit and/or offset are greater than zero.
-func FormatLimitOffset(limit, offset int) string {
+func formatLimitAndOffset(limit, offset int) string {
 	if limit > 0 && offset > 0 {
 		return fmt.Sprintf(`LIMIT %d OFFSET %d`, limit, offset)
 	} else if limit > 0 {

@@ -1,0 +1,26 @@
+{{define "index"}}
+{{template "header" .}}
+
+<main>
+  <div class="u-wrapper">
+    <div class="u-padding">
+
+      <header class="Heading">
+	<h2 class="Heading-title">
+	  <a class="Heading-link u-clickable" rel="bookmark">Posts</a>
+	</h2>
+      </header>
+
+      {{range .}}
+      <ul>
+	<li> {{.CreatedAt.Format "2006-01-02"}} -- <a href="/post/{{.ID}}">{{.Title}}</a>
+	</li>
+      </ul>
+      {{end}}
+
+    </div>
+  </div>
+</main>
+
+{{template "footer" .}}
+{{end}}

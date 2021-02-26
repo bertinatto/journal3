@@ -8,6 +8,7 @@ import (
 
 	"github.com/bertinatto/journal3/http"
 	"github.com/bertinatto/journal3/sqlite"
+	"k8s.io/klog"
 )
 
 func main() {
@@ -18,9 +19,11 @@ func main() {
 	}
 
 	journalService := sqlite.NewJournalService(db)
+	nowService := sqlite.NewNowService(db)
 
 	s := http.NewServer()
 	s.JournalService = journalService
+	s.NowService = nowService
 
 	// Setup signal handlers.
 	ctx, cancel := context.WithCancel(context.Background())
@@ -28,6 +31,7 @@ func main() {
 	signal.Notify(c, os.Interrupt)
 	go func() { <-c; cancel() }()
 
+	klog.Infof("Starting the HTTP server")
 	err = s.Open()
 	if err != nil {
 		log.Fatal(err)
