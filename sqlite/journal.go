@@ -122,7 +122,7 @@ func findPosts(ctx context.Context, tx *Tx, filter *journal.PostFilter) ([]*jour
 		    COUNT(*) OVER()
 		FROM posts
 		WHERE `+strings.Join(where, " AND ")+`
-		ORDER BY id ASC
+		ORDER BY id DESC
 		`+formatLimitAndOffset(filter.Limit, filter.Offset),
 		args...,
 	)
