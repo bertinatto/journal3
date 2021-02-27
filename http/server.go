@@ -48,7 +48,7 @@ func NewServer() *Server {
 	s.router.HandleFunc("/now", s.handleNowView).Methods("GET")
 	s.router.HandleFunc("/now", s.handleNowCreate).Methods("POST")
 
-	s.router.HandleFunc("/about", s.handleAbout).Methods("GET")
+	s.router.HandleFunc("/about", s.handleAboutView).Methods("GET")
 	s.router.HandleFunc("/post/{id}", s.handlePostView).Methods("GET")
 	s.router.HandleFunc("/post", s.handlePostCreate).Methods("POST")
 
@@ -93,8 +93,8 @@ func (s *Server) handlePanic(next http.Handler) http.Handler {
 	})
 }
 
-func (s *Server) handleAbout(w http.ResponseWriter, r *http.Request) {
-	err := tmpl.ExecuteTemplate(w, "now", nil)
+func (s *Server) handleAboutView(w http.ResponseWriter, r *http.Request) {
+	err := tmpl.ExecuteTemplate(w, "about", nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
