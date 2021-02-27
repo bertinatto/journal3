@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/gomarkdown/markdown"
 	"github.com/gorilla/mux"
 	"k8s.io/klog/v2"
 
@@ -16,7 +17,14 @@ import (
 	"github.com/bertinatto/journal3/http/html"
 )
 
-var tmpl = template.Must(template.ParseFS(html.FS, "*.tmpl"))
+var tmpl = template.Must(template.New("").Funcs(
+	template.FuncMap{
+		"safeHTML": func(content string) template.HTML {
+			html := markdown.ToHTML([]byte(content), nil, nil)
+			return template.HTML([]byte(html))
+		},
+	},
+).ParseFS(html.FS, "*.tmpl"))
 
 type Server struct {
 	ln     net.Listener
