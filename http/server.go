@@ -53,6 +53,7 @@ func NewServer() *Server {
 	s.router.HandleFunc("/post", s.handlePostCreate).Methods("POST")
 
 	s.router.PathPrefix("/assets").Handler(http.StripPrefix("/assets", http.FileServer(http.FS(assets.FS))))
+	s.router.PathPrefix("/uploads").Handler(http.StripPrefix("/uploads", http.FileServer(http.Dir("http/upload/"))))
 
 	s.server.Handler = http.HandlerFunc(s.router.ServeHTTP)
 	return s
