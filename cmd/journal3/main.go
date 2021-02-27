@@ -32,7 +32,7 @@ func main() {
 	go func() { <-c; cancel() }()
 
 	klog.Infof("Starting the HTTP server")
-	err = s.Open()
+	err = s.Open("127.0.0.1:1111")
 	if err != nil {
 		log.Fatal(err)
 	}

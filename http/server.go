@@ -50,9 +50,9 @@ func NewServer() *Server {
 	return s
 }
 
-func (s *Server) Open() error {
-	// TODO: why am I using a listener instead of calling ListenAndServe()?
-	ln, err := net.Listen("tcp", "127.0.0.1:1111")
+func (s *Server) Open(address string) error {
+	// TODO:
+	ln, err := net.Listen("tcp", address)
 	if err != nil {
 		return err
 	}
