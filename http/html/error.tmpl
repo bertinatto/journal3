@@ -1,0 +1,16 @@
+{{define "error"}}
+{{template "header" .}}
+
+<main>
+  <div class="u-wrapper">
+    <div class="u-padding">
+
+      <header class="Heading">
+      </header>
+      <p>An error happened: {{.Message}}</p>
+    </div>
+  </div>
+</main>
+
+{{template "footer" .}}
+{{end}}

@@ -86,7 +86,7 @@ func (j *JournalService) FindPosts(ctx context.Context) ([]*journal.Post, error)
 	}
 
 	if n == 0 {
-		return nil, fmt.Errorf("%s", "post not found")
+		return nil, &journal.Error{Code: journal.ENOTFOUND, Message: "There are no posts available"}
 	}
 
 	return posts, nil

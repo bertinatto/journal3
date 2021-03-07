@@ -152,13 +152,13 @@ func (s *Server) handlePostView(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 	posts, err := s.JournalService.FindPosts(r.Context())
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		Error(w, r, err)
 		return
 	}
 
 	err = tmpl.ExecuteTemplate(w, "index", posts)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		Error(w, r, err)
 		return
 	}
 }
@@ -198,6 +198,17 @@ func (s *Server) handleNowView(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = tmpl.ExecuteTemplate(w, "now", now)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func Error(w http.ResponseWriter, r *http.Request, err error) {
+	code, message := journal.ErrorCode(err), journal.ErrorMessage(err)
+
+	w.WriteHeader(ErrorStatusCode(code))
+	err = tmpl.ExecuteTemplate(w, "error", &journal.Error{Message: message})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
