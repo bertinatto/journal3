@@ -1,0 +1,25 @@
+{{define "newpost"}}
+{{template "header" .}}
+
+<main>
+  <div class="u-wrapper">
+    <div class="u-padding">
+
+
+<form id="myform" action="/post/{{.}}" method="POST">
+  <div>
+    <p><label>Your message:</label></p>
+    <p><textarea rows="1" cols="100" name="title"></textarea></p>
+    <p><textarea rows="50" cols="100" name="content"></textarea></p>
+  </div>
+  <div>
+    <input type="submit" value="Send message">
+  </div>
+</form>
+
+    </div>
+  </div>
+</main>
+
+{{template "footer" .}}
+{{end}}

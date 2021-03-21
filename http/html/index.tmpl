@@ -13,7 +13,7 @@
 
       {{range .}}
       <ul>
-	<li> {{.CreatedAt.Format "2006-01-02"}} -- <a href="/post/{{.ID}}">{{.Title}}</a>
+	<li> {{.CreatedAt.Format "2006-01-02"}} -- <a href="/post/{{.Permalink}}">{{.Title}}</a>
 	</li>
       </ul>
       {{end}}

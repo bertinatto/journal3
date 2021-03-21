@@ -32,13 +32,15 @@ func (j *JournalService) CreatePost(ctx context.Context, post *journal.Post) err
 
 	result, err := tx.ExecContext(ctx, `
 		INSERT INTO posts (
+			permalink,
 			title,
 			content,
 			created_at,
 			updated_at
 		)
-		VALUES (?,?,?,?)
+		VALUES (?,?,?,?,?)
 	`,
+		post.Permalink,
 		post.Title,
 		post.Content,
 		post.CreatedAt,
@@ -63,14 +65,24 @@ func (j *JournalService) FindPostByID(ctx context.Context, id int) (*journal.Pos
 		return nil, err
 	}
 	defer tx.Rollback()
-
 	p, err := findPostByID(ctx, tx, id)
 	if err != nil {
 		return nil, err
 	}
-
 	return p, err
+}
 
+func (j *JournalService) FindPostByPermalink(ctx context.Context, permalink string) (*journal.Post, error) {
+	tx, err := j.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+	p, err := findPostByPermalink(ctx, tx, permalink)
+	if err != nil {
+		return nil, err
+	}
+	return p, err
 }
 
 func (j *JournalService) FindPosts(ctx context.Context) ([]*journal.Post, error) {
@@ -92,6 +104,19 @@ func (j *JournalService) FindPosts(ctx context.Context) ([]*journal.Post, error)
 	return posts, nil
 }
 
+func findPostByPermalink(ctx context.Context, tx *Tx, permalink string) (*journal.Post, error) {
+	posts, n, err := findPosts(ctx, tx, &journal.PostFilter{Permalink: &permalink})
+	if err != nil {
+		return nil, err
+	}
+
+	if n == 0 {
+		return nil, &journal.Error{Code: journal.ENOTFOUND, Message: "There are no posts available with permalink"}
+	}
+
+	return posts[0], nil
+}
+
 func findPostByID(ctx context.Context, tx *Tx, id int) (*journal.Post, error) {
 	posts, n, err := findPosts(ctx, tx, &journal.PostFilter{ID: &id})
 	if err != nil {
@@ -111,10 +136,14 @@ func findPosts(ctx context.Context, tx *Tx, filter *journal.PostFilter) ([]*jour
 	if v := filter.ID; v != nil {
 		where, args = append(where, "id = ?"), append(args, *v)
 	}
+	if v := filter.Permalink; v != nil {
+		where, args = append(where, "permalink = ?"), append(args, *v)
+	}
 
 	rows, err := tx.QueryContext(ctx, `
 		SELECT
 		    id,
+		    permalink,
 		    title,
             content,
 		    created_at,
@@ -137,6 +166,7 @@ func findPosts(ctx context.Context, tx *Tx, filter *journal.PostFilter) ([]*jour
 		var post journal.Post
 		if err := rows.Scan(
 			&post.ID,
+			&post.Permalink,
 			&post.Title,
 			&post.Content,
 			&post.CreatedAt,

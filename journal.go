@@ -7,6 +7,7 @@ import (
 
 type Post struct {
 	ID        int       `json:"id"`
+	Permalink string    `json:"permalink"`
 	Title     string    `json:"title"`
 	Content   string    `json:"content"`
 	CreatedAt time.Time `json:"createdAt"`
@@ -14,15 +15,17 @@ type Post struct {
 }
 
 type PostFilter struct {
-	ID     *int `json:"id"`
-	Offset int  `json:"offset"`
-	Limit  int  `json:"limit"`
+	ID        *int    `json:"id"`
+	Permalink *string `json:"permalink"`
+	Offset    int     `json:"offset"`
+	Limit     int     `json:"limit"`
 }
 
 type JournalService interface {
 	CreatePost(ctx context.Context, post *Post) (err error)
 	FindPostByID(ctx context.Context, id int) (post *Post, err error)
 	FindPosts(ctx context.Context) (posts []*Post, err error)
+	FindPostByPermalink(ctx context.Context, permalink string) (post *Post, err error)
 }
 
 type Now struct {

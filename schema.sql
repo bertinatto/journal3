@@ -1,5 +1,6 @@
 CREATE TABLE IF NOT EXISTS posts (
     id INTEGER PRIMARY KEY,
+    permalink TEXT NOT NULL,
     title TEXT NOT NULL,
     content TEXT NOT NULL,
     created_at TIMESTAMP,

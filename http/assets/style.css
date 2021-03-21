@@ -12,6 +12,10 @@ main {
     flex-grow: 1
 }
 
+textarea {
+  max-width: 100%;
+}
+
 img {
     max-width: 100%;
     border-radius: .2rem
