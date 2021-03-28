@@ -1,0 +1,28 @@
+{{define "login"}}
+{{template "header" .}}
+
+<main>
+  <div class="u-wrapper">
+    <div class="u-padding">
+
+
+<form action="/login2" method="post">
+  <table>
+    <tr>
+      <td>Username (email):</td> <td><input type="text" name="email"></td><br>
+    </tr>
+    <tr>
+      <td>Password:</td> <td><input type="password" name="password"></td><br>
+    </tr>
+    <td><input type="submit" value="Login"></td>
+</tr>
+</table>
+</form>
+
+
+    </div>
+  </div>
+</main>
+
+{{template "footer" .}}
+{{end}}

@@ -1,0 +1,31 @@
+{{define "signup"}}
+{{template "header" .}}
+
+<main>
+  <div class="u-wrapper">
+    <div class="u-padding">
+
+
+<form id="signupform" action="/signup2" method="POST">
+  <table>
+    <tr>
+      <td>Name:</td> <td><input type="text" name="name"></td><br>
+    </tr>
+    <tr>
+      <td>Email:</td> <td><input type="text" name="email"></td><br>
+    </tr>
+    <tr>
+      <td>Password:</td> <td><input type="password" name="password"></td><br>
+    </tr>
+    <tr>
+      <td><input type="submit" value="Register"></td>
+    </tr>
+  </table>
+</form>
+
+    </div>
+  </div>
+</main>
+
+{{template "footer" .}}
+{{end}}

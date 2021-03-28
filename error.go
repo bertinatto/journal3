@@ -6,8 +6,9 @@ import (
 )
 
 const (
-	ENOTFOUND = "not_fount"
-	EINTERNAL = "internal"
+	ENOTFOUND      = "not_fount"
+	EINTERNAL      = "internal"
+	ENOTAUTHORIZED = "not_authorized"
 )
 
 type Error struct {

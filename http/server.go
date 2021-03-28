@@ -47,18 +47,43 @@ func NewServer() *Server {
 	}
 	s.router.Use(s.handlePanic)
 	s.router.Use(s.handleMethodOverride)
-	s.router.HandleFunc("/", s.handleIndex).Methods("GET")
-	s.router.HandleFunc("/about", s.handleAboutView).Methods("GET")
-	s.router.HandleFunc("/about", s.handleAboutCreate).Methods("GET")
-	s.router.HandleFunc("/now", s.handleNowView).Methods("GET")
-	s.router.HandleFunc("/now", s.handleNowCreate).Methods("POST")
-	s.router.HandleFunc("/post", s.handlePostView).Methods("GET")
-	s.router.HandleFunc("/post/{permalink}", s.handlePostView).Methods("GET")
-	s.router.HandleFunc("/post/{permalink}/edit", s.handlePostEdit).Methods("GET")
-	s.router.HandleFunc("/post/{permalink}/edit", s.handlePostUpdate).Methods("POST")
-	s.router.HandleFunc("/post/{permalink}", s.handlePostCreate).Methods("POST")
+
 	s.router.PathPrefix("/assets").Handler(http.StripPrefix("/assets", http.FileServer(http.FS(assets.FS))))
 	s.router.PathPrefix("/uploads").Handler(http.StripPrefix("/uploads", http.FileServer(http.Dir("http/upload/"))))
+
+	router := s.router.PathPrefix("/").Subrouter()
+	// Read session from cookie and saves user in context
+	// router.Use(s.loadSession)
+
+	// Register public routes
+	router.HandleFunc("/", s.handleIndex).Methods(http.MethodGet)
+	router.HandleFunc("/about", s.handleAboutView).Methods(http.MethodGet)
+	router.HandleFunc("/now", s.handleNowView).Methods(http.MethodGet)
+	router.HandleFunc("/post", s.handlePostView).Methods(http.MethodGet)
+	router.HandleFunc("/post/{permalink}", s.handlePostView).Methods(http.MethodGet)
+
+	// Register routes that require the user to NOT be authenticated
+	{
+		r := s.router.PathPrefix("/").Subrouter()
+		// r.Use(s.requireNoAuth)
+		r.HandleFunc("/signup", s.handleSingUpView).Methods(http.MethodGet)
+		r.HandleFunc("/signup2", s.handleSingUp).Methods(http.MethodPost)
+		r.HandleFunc("/login", s.handleLoginView).Methods(http.MethodGet)
+		r.HandleFunc("/login2", s.handleLoginCreate).Methods(http.MethodPost)
+		r.HandleFunc("/logout", s.handleLogout).Methods(http.MethodGet)
+	}
+
+	// Register routes that require authentication
+	{
+		r := s.router.PathPrefix("/").Subrouter()
+		// r.Use(s.requireAuth)
+		r.HandleFunc("/about", s.handleAboutCreate).Methods(http.MethodPost)
+		r.HandleFunc("/now", s.handleNowCreate).Methods(http.MethodPost)
+		r.HandleFunc("/post/{permalink}/edit", s.handlePostEdit).Methods(http.MethodGet)
+		r.HandleFunc("/post/{permalink}/edit", s.handlePostUpdate).Methods(http.MethodPost)
+		r.HandleFunc("/post/{permalink}", s.handlePostCreate).Methods(http.MethodPost)
+	}
+
 	s.server.Handler = http.HandlerFunc(s.router.ServeHTTP)
 	return s
 }
