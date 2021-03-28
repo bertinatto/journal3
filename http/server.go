@@ -95,9 +95,9 @@ func (s *Server) handlePanic(next http.Handler) http.Handler {
 
 func (s *Server) handleMethodOverride(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == "POST" {
+		if r.Method == http.MethodPost {
 			method := r.PostFormValue("_method")
-			if method == "PUT" || method == "PATCH" {
+			if method == http.MethodPut || method == http.MethodPatch {
 				r.Method = method
 			}
 		}
