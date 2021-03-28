@@ -20,6 +20,48 @@ func NewJournalService(db *DB) *JournalService {
 	}
 }
 
+func (j *JournalService) UpdatePost(ctx context.Context, permalink string, updated *journal.PostUpdate) error {
+	tx, err := j.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	post, err := findPostByPermalink(ctx, tx, permalink)
+	if err != nil {
+		return err
+	}
+
+	if v := updated.Title; v != nil {
+		post.Title = *v
+	}
+
+	if v := updated.Content; v != nil {
+		post.Content = *v
+	}
+
+	post.UpdatedAt = tx.now
+
+	_, err = tx.ExecContext(ctx, `
+		UPDATE posts
+        SET title = ?,
+			content = ?,
+			updated_at = ?
+		WHERE id = ?
+	`,
+		post.Title,
+		post.Content,
+		post.UpdatedAt,
+		post.ID,
+	)
+	if err != nil {
+		return fmt.Errorf("could not run query: %v", err)
+	}
+
+	return tx.Commit()
+
+}
+
 func (j *JournalService) CreatePost(ctx context.Context, post *journal.Post) error {
 	tx, err := j.db.BeginTx(ctx, nil)
 	if err != nil {

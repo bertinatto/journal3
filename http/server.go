@@ -45,6 +45,7 @@ func NewServer() *Server {
 		router: mux.NewRouter().StrictSlash(true),
 	}
 	s.router.Use(s.handlePanic)
+	s.router.Use(s.handleMethodOverride)
 	s.router.HandleFunc("/", s.handleIndex).Methods("GET")
 	s.router.HandleFunc("/about", s.handleAboutView).Methods("GET")
 	s.router.HandleFunc("/about", s.handleAboutCreate).Methods("GET")
@@ -52,6 +53,8 @@ func NewServer() *Server {
 	s.router.HandleFunc("/now", s.handleNowCreate).Methods("POST")
 	s.router.HandleFunc("/post", s.handlePostView).Methods("GET")
 	s.router.HandleFunc("/post/{permalink}", s.handlePostView).Methods("GET")
+	s.router.HandleFunc("/post/{permalink}/edit", s.handlePostEdit).Methods("GET")
+	s.router.HandleFunc("/post/{permalink}/edit", s.handlePostUpdate).Methods("POST")
 	s.router.HandleFunc("/post/{permalink}", s.handlePostCreate).Methods("POST")
 	s.router.PathPrefix("/assets").Handler(http.StripPrefix("/assets", http.FileServer(http.FS(assets.FS))))
 	s.router.PathPrefix("/uploads").Handler(http.StripPrefix("/uploads", http.FileServer(http.Dir("http/upload/"))))
@@ -76,10 +79,6 @@ func (s *Server) Close() error {
 	return s.server.Shutdown(ctx)
 }
 
-func (s *Server) serveHTTP(w http.ResponseWriter, r *http.Request) {
-	s.router.ServeHTTP(w, r)
-}
-
 func (s *Server) handlePanic(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
@@ -90,6 +89,18 @@ func (s *Server) handlePanic(next http.Handler) http.Handler {
 				w.Write([]byte(e.Error()))
 			}
 		}()
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (s *Server) handleMethodOverride(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "POST" {
+			method := r.PostFormValue("_method")
+			if method == "PUT" || method == "PATCH" {
+				r.Method = method
+			}
+		}
 		next.ServeHTTP(w, r)
 	})
 }

@@ -21,8 +21,15 @@ type PostFilter struct {
 	Limit     int     `json:"limit"`
 }
 
+type PostUpdate struct {
+	Title     *string    `json:"title"`
+	Content   *string    `json:"content"`
+	UpdatedAt *time.Time `json:"updatedAt"`
+}
+
 type JournalService interface {
 	CreatePost(ctx context.Context, post *Post) (err error)
+	UpdatePost(ctx context.Context, permalink string, post *PostUpdate) (err error)
 	FindPostByID(ctx context.Context, id int) (post *Post, err error)
 	FindPosts(ctx context.Context) (posts []*Post, err error)
 	FindPostByPermalink(ctx context.Context, permalink string) (post *Post, err error)
