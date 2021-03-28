@@ -20,10 +20,12 @@ func main() {
 
 	journalService := sqlite.NewJournalService(db)
 	nowService := sqlite.NewNowService(db)
+	userService := sqlite.NewUserService(db)
 
 	s := http.NewServer()
 	s.JournalService = journalService
 	s.NowService = nowService
+	s.UserService = userService
 
 	// Setup signal handlers.
 	ctx, cancel := context.WithCancel(context.Background())

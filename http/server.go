@@ -37,6 +37,7 @@ type Server struct {
 
 	JournalService journal.JournalService
 	NowService     journal.NowService
+	UserService    journal.UserService
 }
 
 func NewServer() *Server {
