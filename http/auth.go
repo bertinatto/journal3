@@ -126,9 +126,12 @@ func (s *Server) handleLoginCreate(w http.ResponseWriter, r *http.Request) {
 	session.Values["uid"] = user.ID
 	session.Save(r, w)
 
-	klog.Infof("Session %+v", session)
+	redirect, ok := session.Values["redirect"].(string)
+	if !ok {
+		redirect = "/"
+	}
 
-	http.Redirect(w, r, "/", http.StatusMovedPermanently)
+	http.Redirect(w, r, redirect, http.StatusFound)
 }
 
 func (s *Server) handleLogout(w http.ResponseWriter, r *http.Request) {

@@ -10,9 +10,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// s.router.HandleFunc("/post/{permalink}/edit", s.handlePostEdit).Methods("GET")
-// s.router.HandleFunc("/post/{permalink}", s.handlePostUpdate).Methods("PATCH")
-
 func (s *Server) handlePostEdit(w http.ResponseWriter, r *http.Request) {
 	permalink, ok := mux.Vars(r)["permalink"]
 	if !ok {

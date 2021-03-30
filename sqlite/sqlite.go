@@ -11,8 +11,8 @@ import (
 
 type DB struct {
 	db     *sql.DB
-	ctx    context.Context // background context
-	cancel func()          // cancel background context
+	ctx    context.Context
+	cancel func()
 
 	DSN string
 }
@@ -45,12 +45,8 @@ func (db *DB) Open() error {
 	return nil
 }
 
-// Close closes the database connection.
 func (db *DB) Close() error {
-	// Cancel background context.
 	db.cancel()
-
-	// Close database.
 	if db.db != nil {
 		return db.db.Close()
 	}
@@ -62,7 +58,6 @@ func (db *DB) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	return &Tx{
 		Tx:  tx,
 		now: time.Now().UTC().Truncate(time.Second),

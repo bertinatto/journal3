@@ -53,3 +53,26 @@ type NowService interface {
 	CreateNow(ctx context.Context, now *Now) (err error)
 	FindLatestNow(ctx context.Context) (now *Now, err error)
 }
+
+type contextKey int
+
+const (
+	userContextKey = contextKey(iota + 1)
+)
+
+func NewContextWithUser(ctx context.Context, user *User) context.Context {
+	return context.WithValue(ctx, userContextKey, user)
+}
+
+func UserIDFromContext(ctx context.Context) int {
+	user := UserFromContext(ctx)
+	if user == nil {
+		return 0
+	}
+	return user.ID
+}
+
+func UserFromContext(ctx context.Context) *User {
+	user, _ := ctx.Value(userContextKey).(*User)
+	return user
+}

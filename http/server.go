@@ -46,16 +46,13 @@ func NewServer() *Server {
 		router: mux.NewRouter().StrictSlash(true),
 	}
 	s.router.Use(s.handlePanic)
-	s.router.Use(s.handleMethodOverride)
-
 	s.router.PathPrefix("/assets").Handler(http.StripPrefix("/assets", http.FileServer(http.FS(assets.FS))))
 	s.router.PathPrefix("/uploads").Handler(http.StripPrefix("/uploads", http.FileServer(http.Dir("http/upload/"))))
 
+	// Public-facing endopoints, except assets and uploads
 	router := s.router.PathPrefix("/").Subrouter()
-	// Read session from cookie and saves user in context
-	// router.Use(s.loadSession)
-
-	// Register public routes
+	router.Use(s.handleMethodOverride)
+	router.Use(s.handleSession)
 	router.HandleFunc("/", s.handleIndex).Methods(http.MethodGet)
 	router.HandleFunc("/about", s.handleAboutView).Methods(http.MethodGet)
 	router.HandleFunc("/now", s.handleNowView).Methods(http.MethodGet)
@@ -65,7 +62,7 @@ func NewServer() *Server {
 	// Register routes that require the user to NOT be authenticated
 	{
 		r := s.router.PathPrefix("/").Subrouter()
-		// r.Use(s.requireNoAuth)
+		r.Use(s.handleNoAuth)
 		r.HandleFunc("/signup", s.handleSingUpView).Methods(http.MethodGet)
 		r.HandleFunc("/signup2", s.handleSingUp).Methods(http.MethodPost)
 		r.HandleFunc("/login", s.handleLoginView).Methods(http.MethodGet)
@@ -75,8 +72,8 @@ func NewServer() *Server {
 
 	// Register routes that require authentication
 	{
-		r := s.router.PathPrefix("/").Subrouter()
-		// r.Use(s.requireAuth)
+		r := router.PathPrefix("/").Subrouter()
+		r.Use(s.handleAuth)
 		r.HandleFunc("/about", s.handleAboutCreate).Methods(http.MethodPost)
 		r.HandleFunc("/now", s.handleNowCreate).Methods(http.MethodPost)
 		r.HandleFunc("/post/{permalink}/edit", s.handlePostEdit).Methods(http.MethodGet)
@@ -119,6 +116,56 @@ func (s *Server) handlePanic(next http.Handler) http.Handler {
 	})
 }
 
+func (s *Server) handleSession(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Most requests won't have a session
+		session, _ := store.Get(r, sessionCookie)
+		if auth, ok := session.Values["authenticated"].(bool); ok && auth {
+			if id, ok := session.Values["uid"].(int); ok && id > 0 {
+				user, err := s.UserService.FindUserByID(r.Context(), id)
+				if err != nil {
+					klog.Errorf("Could not find user %d: %v", err)
+				} else {
+					r = r.WithContext(journal.NewContextWithUser(r.Context(), user))
+				}
+			}
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (s *Server) handleNoAuth(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		userID := journal.UserIDFromContext(r.Context())
+		if userID > 0 {
+			http.Redirect(w, r, "/", http.StatusFound)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (s *Server) handleAuth(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		userID := journal.UserIDFromContext(r.Context())
+		if userID > 0 {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		redirect := "/"
+		if r.URL.Path != "" {
+			redirect = r.URL.Path
+		}
+
+		session, _ := store.Get(r, sessionCookie)
+		session.Values["redirect"] = redirect
+		session.Save(r, w)
+
+		http.Redirect(w, r, "/login", http.StatusFound)
+	})
+}
+
 func (s *Server) handleMethodOverride(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPost {
@@ -140,17 +187,6 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 	err = tmpl.ExecuteTemplate(w, "index", posts)
 	if err != nil {
 		Error(w, r, err)
-		return
-	}
-}
-
-func Error(w http.ResponseWriter, r *http.Request, err error) {
-	klog.Error(err)
-	code, message := journal.ErrorCode(err), journal.ErrorMessage(err)
-	w.WriteHeader(ErrorStatusCode(code))
-	err = tmpl.ExecuteTemplate(w, "error", &journal.Error{Message: message})
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }

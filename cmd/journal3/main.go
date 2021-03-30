@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"log"
 	"os"
 	"os/signal"
 
@@ -15,31 +14,28 @@ func main() {
 	db := sqlite.NewDB("blog.db")
 	err := db.Open()
 	if err != nil {
-		log.Fatal(err)
+		klog.Fatal(err)
 	}
 
-	journalService := sqlite.NewJournalService(db)
-	nowService := sqlite.NewNowService(db)
-	userService := sqlite.NewUserService(db)
-
 	s := http.NewServer()
-	s.JournalService = journalService
-	s.NowService = nowService
-	s.UserService = userService
+	s.JournalService = sqlite.NewJournalService(db)
+	s.NowService = sqlite.NewNowService(db)
+	s.UserService = sqlite.NewUserService(db)
 
-	// Setup signal handlers.
 	ctx, cancel := context.WithCancel(context.Background())
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
-	go func() { <-c; cancel() }()
+	go func() {
+		<-c
+		cancel()
+	}()
 
 	klog.Infof("Starting the HTTP server")
 	err = s.Open("127.0.0.1:1111")
 	if err != nil {
-		log.Fatal(err)
+		klog.Fatal(err)
 	}
 
-	// Wait for CTRL-C.
+	// Wait for CTRL-C
 	<-ctx.Done()
-
 }
