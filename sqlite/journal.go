@@ -55,7 +55,7 @@ func (j *JournalService) UpdatePost(ctx context.Context, permalink string, updat
 		post.ID,
 	)
 	if err != nil {
-		return fmt.Errorf("could not run query: %v", err)
+		return err
 	}
 
 	return tx.Commit()
@@ -89,12 +89,12 @@ func (j *JournalService) CreatePost(ctx context.Context, post *journal.Post) err
 		post.UpdatedAt,
 	)
 	if err != nil {
-		return fmt.Errorf("could not run query: %v", err)
+		return err
 	}
 
 	id, err := result.LastInsertId()
 	if err != nil {
-		return fmt.Errorf("could not get last inserted id: %v", err)
+		return err
 	}
 	post.ID = int(id)
 
@@ -222,7 +222,6 @@ func findPosts(ctx context.Context, tx *Tx, filter *journal.PostFilter) ([]*jour
 	if err := rows.Err(); err != nil {
 		return nil, 0, err
 	}
-
 	return posts, n, nil
 }
 
