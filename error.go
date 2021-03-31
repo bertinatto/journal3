@@ -7,6 +7,7 @@ import (
 
 const (
 	ENOTFOUND      = "not_fount"
+	EBADINPUT      = "bad_input"
 	EINTERNAL      = "internal"
 	ENOTAUTHORIZED = "not_authorized"
 )

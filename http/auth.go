@@ -26,7 +26,7 @@ func (s *Server) handleSingUpView(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleSingUp(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		Error(w, r, err)
+		Error(w, r, &journal.Error{Code: journal.EBADINPUT, Message: "Failed parsing input"})
 		return
 	}
 
@@ -34,25 +34,25 @@ func (s *Server) handleSingUp(w http.ResponseWriter, r *http.Request) {
 	email := r.Form.Get("email")
 	password := r.Form.Get("password")
 	if name == "" || email == "" || password == "" {
-		Error(w, r, &journal.Error{Message: "Name, email and password must be present"})
+		Error(w, r, &journal.Error{Code: journal.EBADINPUT, Message: "Missing parameters: name, email and passport are required"})
 		return
 	}
 
 	_, err = s.UserService.FindUserByEmail(r.Context(), email)
 	if err == nil {
-		Error(w, r, &journal.Error{Message: "user exists"})
+		Error(w, r, err)
 		return
 	}
 
 	if len(password) < 4 {
-		Error(w, r, &journal.Error{Message: "password too short"})
+		Error(w, r, &journal.Error{Code: journal.EBADINPUT, Message: "Password must be at least 4 caracteres long"})
 		return
 	}
 
 	// Salt and hash the password using the bcrypt algorithm
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 8)
 	if err != nil {
-		Error(w, r, &journal.Error{Message: "failed to process user"})
+		Error(w, r, &journal.Error{Code: journal.EINTERNAL, Message: "Failed to process user"})
 		return
 	}
 
@@ -99,7 +99,7 @@ func (s *Server) handleLoginCreate(w http.ResponseWriter, r *http.Request) {
 	email := r.Form.Get("email")
 	password := r.Form.Get("password")
 	if email == "" || password == "" {
-		Error(w, r, &journal.Error{Message: "Email and password must be present"})
+		Error(w, r, &journal.Error{Code: journal.EBADINPUT, Message: "Missing parameters: email and passport are required"})
 		return
 	}
 
@@ -111,7 +111,7 @@ func (s *Server) handleLoginCreate(w http.ResponseWriter, r *http.Request) {
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
-		Error(w, r, &journal.Error{Code: journal.ENOTAUTHORIZED, Message: "invalid password"})
+		Error(w, r, &journal.Error{Code: journal.ENOTAUTHORIZED, Message: "Invalid password"})
 		return
 	}
 
@@ -131,7 +131,7 @@ func (s *Server) handleLoginCreate(w http.ResponseWriter, r *http.Request) {
 		redirect = "/"
 	}
 
-	http.Redirect(w, r, redirect, http.StatusFound)
+	http.Redirect(w, r, redirect, http.StatusSeeOther)
 }
 
 func (s *Server) handleLogout(w http.ResponseWriter, r *http.Request) {

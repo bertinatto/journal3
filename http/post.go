@@ -13,7 +13,7 @@ import (
 func (s *Server) handlePostEdit(w http.ResponseWriter, r *http.Request) {
 	permalink, ok := mux.Vars(r)["permalink"]
 	if !ok {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
+		Error(w, r, &journal.Error{Code: journal.EBADINPUT, Message: "Missing permalink"})
 		return
 	}
 
@@ -33,19 +33,19 @@ func (s *Server) handlePostEdit(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handlePostUpdate(w http.ResponseWriter, r *http.Request) {
 	permalink, ok := mux.Vars(r)["permalink"]
 	if !ok {
-		Error(w, r, fmt.Errorf("failed to parse permalink"))
+		Error(w, r, &journal.Error{Code: journal.EBADINPUT, Message: "Missing permalink"})
 		return
 	}
 
 	err := r.ParseForm()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		Error(w, r, &journal.Error{Code: journal.EBADINPUT, Message: "Failed parsing input"})
 	}
 
 	title := strings.TrimSpace(r.Form.Get("title"))
 	content := strings.TrimSpace(strings.ReplaceAll(r.Form.Get("content"), "\r\n", "\n"))
 	if title == "" || content == "" {
-		http.Error(w, "Bad request: title, content and permalink must be present", http.StatusBadRequest)
+		Error(w, r, &journal.Error{Code: journal.EBADINPUT, Message: "Missing parameters: title and/or content"})
 		return
 	}
 
@@ -66,19 +66,20 @@ func (s *Server) handlePostUpdate(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handlePostCreate(w http.ResponseWriter, r *http.Request) {
 	permalink, ok := mux.Vars(r)["permalink"]
 	if !ok {
-		Error(w, r, fmt.Errorf("failed to parse permalink"))
+		Error(w, r, &journal.Error{Code: journal.EBADINPUT, Message: "Missing permalink"})
 		return
 	}
 
 	err := r.ParseForm()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		Error(w, r, &journal.Error{Code: journal.EBADINPUT, Message: "Failed parsing input"})
+		return
 	}
 
 	title := strings.TrimSpace(r.Form.Get("title"))
 	content := strings.TrimSpace(strings.ReplaceAll(r.Form.Get("content"), "\r\n", "\n"))
 	if title == "" || content == "" {
-		http.Error(w, "Bad request: title, content and permalink must be present", http.StatusBadRequest)
+		Error(w, r, &journal.Error{Code: journal.EBADINPUT, Message: "Missing parameters: title and/or content"})
 		return
 	}
 
@@ -90,7 +91,7 @@ func (s *Server) handlePostCreate(w http.ResponseWriter, r *http.Request) {
 
 	err = s.JournalService.CreatePost(r.Context(), post)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		Error(w, r, err)
 	}
 
 	http.Redirect(w, r, fmt.Sprintf("/post/%s", permalink), http.StatusFound)
@@ -99,7 +100,7 @@ func (s *Server) handlePostCreate(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handlePostView(w http.ResponseWriter, r *http.Request) {
 	permalink, ok := mux.Vars(r)["permalink"]
 	if !ok {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
+		Error(w, r, &journal.Error{Code: journal.EBADINPUT, Message: "Missing permalink"})
 		return
 	}
 

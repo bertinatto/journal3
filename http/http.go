@@ -9,6 +9,7 @@ import (
 
 var errorCodes = map[string]int{
 	journal.ENOTFOUND: http.StatusNotFound,
+	journal.EBADINPUT: http.StatusBadRequest,
 	journal.EINTERNAL: http.StatusInternalServerError,
 }
 

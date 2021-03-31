@@ -9,13 +9,14 @@ import (
 func (s *Server) handleNowCreate(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		Error(w, r, &journal.Error{Code: journal.EBADINPUT, Message: "Failed parsing input"})
+		return
 	}
 
 	location := r.Form.Get("location")
 	content := r.Form.Get("content")
 	if location == "" || content == "" {
-		http.Error(w, "Bad request: location and content must be present", http.StatusBadRequest)
+		Error(w, r, &journal.Error{Code: journal.EBADINPUT, Message: "Missing parameters: location and/or content"})
 		return
 	}
 
@@ -26,20 +27,21 @@ func (s *Server) handleNowCreate(w http.ResponseWriter, r *http.Request) {
 
 	err = s.NowService.CreateNow(r.Context(), now)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		Error(w, r, err)
+		return
 	}
 }
 
 func (s *Server) handleNowView(w http.ResponseWriter, r *http.Request) {
 	now, err := s.NowService.FindLatestNow(r.Context())
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		Error(w, r, err)
 		return
 	}
 
 	err = tmpl.ExecuteTemplate(w, "now", now)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		Error(w, r, err)
 		return
 	}
 }
