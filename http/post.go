@@ -13,7 +13,7 @@ import (
 func (s *Server) handlePostEdit(w http.ResponseWriter, r *http.Request) {
 	permalink, ok := mux.Vars(r)["permalink"]
 	if !ok {
-		http.Redirect(w, r, "/", http.StatusMovedPermanently)
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 
@@ -60,7 +60,7 @@ func (s *Server) handlePostUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("/post/%s", permalink), http.StatusMovedPermanently)
+	http.Redirect(w, r, fmt.Sprintf("/post/%s", permalink), http.StatusFound)
 }
 
 func (s *Server) handlePostCreate(w http.ResponseWriter, r *http.Request) {
@@ -93,13 +93,13 @@ func (s *Server) handlePostCreate(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("/post/%s", permalink), http.StatusMovedPermanently)
+	http.Redirect(w, r, fmt.Sprintf("/post/%s", permalink), http.StatusFound)
 }
 
 func (s *Server) handlePostView(w http.ResponseWriter, r *http.Request) {
 	permalink, ok := mux.Vars(r)["permalink"]
 	if !ok {
-		http.Redirect(w, r, "/", http.StatusMovedPermanently)
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 

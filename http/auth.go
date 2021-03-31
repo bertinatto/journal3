@@ -78,7 +78,7 @@ func (s *Server) handleSingUp(w http.ResponseWriter, r *http.Request) {
 	session.Values["uid"] = u.ID
 	session.Save(r, w)
 
-	http.Redirect(w, r, "/", http.StatusMovedPermanently)
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 func (s *Server) handleLoginView(w http.ResponseWriter, r *http.Request) {
