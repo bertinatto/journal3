@@ -8,7 +8,7 @@ import (
 	journal "github.com/bertinatto/journal3"
 )
 
-var _ journal.UserService = &UserService{}
+var _ journal.UserService = (*UserService)(nil)
 
 type UserService struct {
 	db *DB
