@@ -46,6 +46,8 @@ func NewServer() *Server {
 		router: mux.NewRouter().StrictSlash(true),
 	}
 	s.router.Use(s.handlePanic)
+	s.router.NotFoundHandler = http.HandlerFunc(s.handleNotFound)
+
 	s.router.PathPrefix("/assets").Handler(http.StripPrefix("/assets", http.FileServer(http.FS(assets.FS))))
 	s.router.PathPrefix("/uploads").Handler(http.StripPrefix("/uploads", http.FileServer(http.Dir("http/upload/"))))
 
@@ -176,6 +178,14 @@ func (s *Server) handleMethodOverride(next http.Handler) http.Handler {
 		}
 		next.ServeHTTP(w, r)
 	})
+}
+
+func (s *Server) handleNotFound(w http.ResponseWriter, r *http.Request) {
+	err := tmpl.ExecuteTemplate(w, "notfound", nil)
+	if err != nil {
+		Error(w, r, err)
+		return
+	}
 }
 
 func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
