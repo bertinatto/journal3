@@ -2,7 +2,6 @@ package sqlite
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	journal "github.com/bertinatto/journal3"
@@ -45,12 +44,12 @@ func (j *NowService) CreateNow(ctx context.Context, now *journal.Now) error {
 		now.UpdatedAt,
 	)
 	if err != nil {
-		return fmt.Errorf("could not run query: %v", err)
+		return err
 	}
 
 	id, err := result.LastInsertId()
 	if err != nil {
-		return fmt.Errorf("could not get last inserted id: %v", err)
+		return err
 	}
 	now.ID = int(id)
 
@@ -80,7 +79,7 @@ func findLatestNow(ctx context.Context, tx *Tx) (*journal.Now, error) {
 	}
 
 	if n == 0 {
-		return nil, fmt.Errorf("%s", "now content not found")
+		return nil, &journal.Error{Code: journal.ENOTFOUND, Message: "Now content not found"}
 	}
 
 	return nows[0], nil

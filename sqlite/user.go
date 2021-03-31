@@ -2,7 +2,6 @@ package sqlite
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	journal "github.com/bertinatto/journal3"
@@ -49,12 +48,12 @@ func (u *UserService) CreateUser(ctx context.Context, user *journal.User) error 
 		user.UpdatedAt,
 	)
 	if err != nil {
-		return fmt.Errorf("could create user: %w", err)
+		return err
 	}
 
 	id, err := result.LastInsertId()
 	if err != nil {
-		return fmt.Errorf("could not get last inserted id: %w", err)
+		return err
 	}
 	user.ID = int(id)
 
@@ -102,11 +101,10 @@ func (u *UserService) UpdateUser(ctx context.Context, id int, updated *journal.U
 		user.ID,
 	)
 	if err != nil {
-		return fmt.Errorf("could not run query: %v", err)
+		return err
 	}
 
 	return tx.Commit()
-
 }
 
 func (u *UserService) DeleteUser(ctx context.Context, id int) error {
@@ -187,7 +185,7 @@ func findUserByID(ctx context.Context, tx *Tx, id int) (*journal.User, error) {
 	}
 
 	if n == 0 {
-		return nil, &journal.Error{Code: journal.ENOTFOUND, Message: "User(s) not found"}
+		return nil, &journal.Error{Code: journal.ENOTFOUND, Message: "User not found"}
 	}
 
 	return users[0], nil
@@ -200,7 +198,7 @@ func findUserByEmail(ctx context.Context, tx *Tx, email string) (*journal.User, 
 	}
 
 	if n == 0 {
-		return nil, &journal.Error{Code: journal.ENOTFOUND, Message: "User(s) not found"}
+		return nil, &journal.Error{Code: journal.ENOTFOUND, Message: "User not found"}
 	}
 
 	return users[0], nil

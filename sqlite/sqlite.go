@@ -58,6 +58,7 @@ func (db *DB) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return &Tx{
 		Tx:  tx,
 		now: time.Now().UTC().Truncate(time.Second),

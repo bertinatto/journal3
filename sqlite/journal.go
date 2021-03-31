@@ -107,10 +107,12 @@ func (j *JournalService) FindPostByID(ctx context.Context, id int) (*journal.Pos
 		return nil, err
 	}
 	defer tx.Rollback()
+
 	p, err := findPostByID(ctx, tx, id)
 	if err != nil {
 		return nil, err
 	}
+
 	return p, err
 }
 
@@ -120,10 +122,12 @@ func (j *JournalService) FindPostByPermalink(ctx context.Context, permalink stri
 		return nil, err
 	}
 	defer tx.Rollback()
+
 	p, err := findPostByPermalink(ctx, tx, permalink)
 	if err != nil {
 		return nil, err
 	}
+
 	return p, err
 }
 
@@ -153,7 +157,7 @@ func findPostByPermalink(ctx context.Context, tx *Tx, permalink string) (*journa
 	}
 
 	if n == 0 {
-		return nil, &journal.Error{Code: journal.ENOTFOUND, Message: "There are no posts available with permalink"}
+		return nil, &journal.Error{Code: journal.ENOTFOUND, Message: "Post not found"}
 	}
 
 	return posts[0], nil
@@ -166,7 +170,7 @@ func findPostByID(ctx context.Context, tx *Tx, id int) (*journal.Post, error) {
 	}
 
 	if n == 0 {
-		return nil, fmt.Errorf("%s", "post not found")
+		return nil, &journal.Error{Code: journal.ENOTFOUND, Message: "Post not found"}
 	}
 
 	return posts[0], nil
@@ -222,6 +226,7 @@ func findPosts(ctx context.Context, tx *Tx, filter *journal.PostFilter) ([]*jour
 	if err := rows.Err(); err != nil {
 		return nil, 0, err
 	}
+
 	return posts, n, nil
 }
 
