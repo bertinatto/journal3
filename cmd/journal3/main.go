@@ -15,11 +15,12 @@ import (
 
 const (
 	defaultDataFile = "data.db"
-	defaultAddress  = "127.0.0.1:1111"
+	defaultAddress  = "localhost:8080"
 )
 
 func main() {
 	file := flag.String("file", defaultDataFile, "file where data will persist")
+	domain := flag.String("domain", "", "domain")
 	addr := flag.String("listen", defaultAddress, "ip:port")
 	flag.Parse()
 
@@ -45,6 +46,8 @@ func main() {
 	}
 
 	s := http.NewServer()
+	s.Domain = *domain
+	s.Addr = *addr
 	s.JournalService = sqlite.NewJournalService(db)
 	s.NowService = sqlite.NewNowService(db)
 	s.UserService = sqlite.NewUserService(db)
@@ -58,9 +61,15 @@ func main() {
 	}()
 
 	klog.Infof("Starting the HTTP server")
-	err = s.Open(*addr)
+	err = s.Open()
 	if err != nil {
 		klog.Fatal(err)
+	}
+
+	if s.TLS() {
+		go func() {
+			klog.Fatal(http.ListenAndServerTLSRedirect(s.Domain))
+		}()
 	}
 
 	// Wait for CTRL-C

@@ -10,6 +10,7 @@ import (
 	"github.com/gomarkdown/markdown"
 	"github.com/gomarkdown/markdown/parser"
 	"github.com/gorilla/mux"
+	"golang.org/x/crypto/acme/autocert"
 	"k8s.io/klog/v2"
 
 	journal "github.com/bertinatto/journal3"
@@ -34,6 +35,9 @@ type Server struct {
 	ln     net.Listener
 	server *http.Server
 	router *mux.Router
+
+	Domain string
+	Addr   string
 
 	JournalService journal.JournalService
 	NowService     journal.NowService
@@ -87,13 +91,16 @@ func NewServer() *Server {
 	return s
 }
 
-func (s *Server) Open(address string) error {
-	// TODO:
-	ln, err := net.Listen("tcp", address)
-	if err != nil {
-		return err
+func (s *Server) Open() error {
+	if s.TLS() {
+		s.ln = autocert.NewListener(s.Domain)
+	} else {
+		l, err := net.Listen("tcp", s.Addr)
+		if err != nil {
+			return err
+		}
+		s.ln = l
 	}
-	s.ln = ln
 	go s.server.Serve(s.ln)
 	return nil
 }
@@ -102,6 +109,10 @@ func (s *Server) Close() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 	return s.server.Shutdown(ctx)
+}
+
+func (s *Server) TLS() bool {
+	return s.Domain != ""
 }
 
 func (s *Server) handlePanic(next http.Handler) http.Handler {
@@ -199,4 +210,10 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		Error(w, r, err)
 		return
 	}
+}
+
+func ListenAndServerTLSRedirect(domain string) error {
+	return http.ListenAndServe(":80", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "https://"+domain, http.StatusFound)
+	}))
 }

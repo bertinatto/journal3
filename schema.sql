@@ -8,8 +8,8 @@ CREATE TABLE IF NOT EXISTS user (
     updated_at TIMESTAMP
 );
 
-ALTER TABLE user
-ADD COLUMN password TEXT NOT NULL;
+-- ALTER TABLE user
+-- ADD COLUMN password TEXT NOT NULL;
 
 -- TODO: posts -> post
 CREATE TABLE IF NOT EXISTS posts (
