@@ -2,6 +2,8 @@ package journal
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"time"
 )
 
@@ -13,6 +15,16 @@ type User struct {
 	Password  string    `json:"password"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+func (u *User) Validate() error {
+	if len(u.Password) < 6 {
+		return fmt.Errorf("password must be at least 6 char long")
+	}
+	if !strings.Contains(u.Email, "@") {
+		return fmt.Errorf("invalid email address")
+	}
+	return nil
 }
 
 type UserFilter struct {

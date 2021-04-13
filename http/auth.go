@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"net/http"
 
 	journal "github.com/bertinatto/journal3"
@@ -44,8 +45,15 @@ func (s *Server) handleSingUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(password) < 4 {
-		Error(w, r, &journal.Error{Code: journal.EBADINPUT, Message: "Password must be at least 4 caracteres long"})
+	u := &journal.User{
+		Name:     name,
+		Email:    email,
+		Password: password,
+	}
+
+	err = u.Validate()
+	if err != nil {
+		Error(w, r, &journal.Error{Code: journal.EBADINPUT, Message: fmt.Sprintf("Invalid user: %v", err)})
 		return
 	}
 
@@ -55,14 +63,9 @@ func (s *Server) handleSingUp(w http.ResponseWriter, r *http.Request) {
 		Error(w, r, &journal.Error{Code: journal.EINTERNAL, Message: "Failed to process user"})
 		return
 	}
+	u.Password = string(hashedPassword)
 
-	u := journal.User{
-		Name:     name,
-		Email:    email,
-		Password: string(hashedPassword),
-	}
-
-	err = s.UserService.CreateUser(r.Context(), &u)
+	err = s.UserService.CreateUser(r.Context(), u)
 	if err != nil {
 		Error(w, r, err)
 		return
