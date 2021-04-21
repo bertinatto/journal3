@@ -82,6 +82,8 @@ func NewServer() *Server {
 		r := router.PathPrefix("/").Subrouter()
 		r.Use(s.handleAuth)
 		r.HandleFunc("/about", s.handleAboutCreate).Methods(http.MethodPost)
+		r.HandleFunc("/about/edit", s.handleAboutEdit).Methods(http.MethodGet)
+		r.HandleFunc("/about", s.handleAboutUpdate).Methods(http.MethodPatch)
 		r.HandleFunc("/contact", s.handleContactCreate).Methods(http.MethodPost)
 		r.HandleFunc("/contact/edit", s.handleContactEdit).Methods(http.MethodGet)
 		r.HandleFunc("/contact", s.handleContactUpdate).Methods(http.MethodPatch)
