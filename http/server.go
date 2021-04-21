@@ -72,7 +72,7 @@ func NewServer() *Server {
 
 	// Register routes that require the user to NOT be authenticated
 	{
-		r := s.router.PathPrefix("/").Subrouter()
+		r := router.PathPrefix("/").Subrouter()
 		r.Use(s.handleNoAuth)
 		r.HandleFunc("/signup", s.handleSingUpView).Methods(http.MethodGet)
 		r.HandleFunc("/signup2", s.handleSingUp).Methods(http.MethodPost)
