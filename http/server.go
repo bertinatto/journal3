@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"net"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gomarkdown/markdown"
@@ -20,6 +21,9 @@ import (
 
 var tmpl = template.Must(template.New("").Funcs(
 	template.FuncMap{
+		"toTitle": func(content string) template.HTML {
+			return template.HTML(strings.Title(content))
+		},
 		"safeHTML": func(content string) template.HTML {
 			parser := parser.NewWithExtensions(parser.CommonExtensions |
 				parser.FencedCode |
@@ -88,6 +92,7 @@ func NewServer() *Server {
 		r.HandleFunc("/contact/edit", s.handleContactEdit).Methods(http.MethodGet)
 		r.HandleFunc("/contact", s.handleContactUpdate).Methods(http.MethodPatch)
 		r.HandleFunc("/now", s.handleNowCreate).Methods(http.MethodPost)
+		r.HandleFunc("/now/edit", s.handleNowEdit).Methods(http.MethodGet)
 		r.HandleFunc("/post/{permalink}/edit", s.handlePostEdit).Methods(http.MethodGet)
 		r.HandleFunc("/post/{permalink}/edit", s.handlePostUpdate).Methods(http.MethodPatch)
 		r.HandleFunc("/post/{permalink}", s.handlePostCreate).Methods(http.MethodPost)

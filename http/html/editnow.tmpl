@@ -1,0 +1,21 @@
+{{define "editnow"}}
+{{template "header" .}}
+
+<main>
+  <div class="u-wrapper">
+    <div class="u-padding">
+    <form id="myform" action="/now" method="POST">
+    <div>
+	<p><textarea name="location">{{.FromLocation}}</textarea></p>
+	<p><textarea rows="50" cols="100" name="content">{{.Content}}</textarea></p>
+    </div>
+    <div>
+	<input type="submit" value="Send">
+    </div>
+    </form>
+    </div>
+  </div>
+</main>
+
+{{template "footer" .}}
+{{end}}

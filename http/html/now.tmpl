@@ -4,12 +4,15 @@
 <main>
   <div class="u-wrapper">
     <div class="u-padding">
-
       <header class="Heading">
+	<h2 class="Heading-title">
+	  <a class="Heading-link u-clickable" rel="bookmark">Now</a>
+	</h2>
       </header>
+
       <p>{{safeHTML .Content}}</p>
       <p></p>
-      <p>This page was last updated on {{.UpdatedAt.Format "02 January, 2006"}}, from {{.FromLocation}}.</p>
+      <p><small><i>This page was last updated on {{.UpdatedAt.Format "02 January, 2006"}}, from {{.FromLocation}}.</i></small></p>
     </div>
   </div>
 </main>
