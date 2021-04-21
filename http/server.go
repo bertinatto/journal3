@@ -78,13 +78,13 @@ func NewServer() *Server {
 		r.HandleFunc("/signup2", s.handleSingUp).Methods(http.MethodPost)
 		r.HandleFunc("/login", s.handleLoginView).Methods(http.MethodGet)
 		r.HandleFunc("/login2", s.handleLoginCreate).Methods(http.MethodPost)
-		r.HandleFunc("/logout", s.handleLogout).Methods(http.MethodGet)
 	}
 
 	// Register routes that require authentication
 	{
 		r := router.PathPrefix("/").Subrouter()
 		r.Use(s.handleAuth)
+		r.HandleFunc("/logout", s.handleLogout).Methods(http.MethodGet)
 		r.HandleFunc("/about", s.handleAboutCreate).Methods(http.MethodPost)
 		r.HandleFunc("/about/edit", s.handleAboutEdit).Methods(http.MethodGet)
 		r.HandleFunc("/about", s.handleAboutUpdate).Methods(http.MethodPatch)
