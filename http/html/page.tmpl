@@ -5,7 +5,9 @@
   <div class="u-wrapper">
     <div class="u-padding">
       <header class="Heading">
-	<time datetime="{{.CreatedAt.Format "2006-01-02T00:00:00Z"}}">{{.CreatedAt.Format "02 January, 2006"}}</time>
+	<h2 class="Heading-title">
+	  <a class="Heading-link u-clickable" rel="bookmark">{{toTitle .Name}}</a>
+	</h2>
       </header>
       {{safeHTML .Content}}
     </div>
