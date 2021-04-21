@@ -1,0 +1,21 @@
+{{define "editpage"}}
+{{template "header" .}}
+
+<main>
+  <div class="u-wrapper">
+    <div class="u-padding">
+    <form id="myform" action="/{{.Name}}" method="POST">
+    <div>
+	<p><textarea rows="50" cols="100" name="content">{{.Content}}</textarea></p>
+    </div>
+    <div>
+	<input type="hidden" name="_method" value="PATCH">
+	<input type="submit" value="Send message">
+    </div>
+    </form>
+    </div>
+  </div>
+</main>
+
+{{template "footer" .}}
+{{end}}

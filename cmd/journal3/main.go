@@ -48,6 +48,7 @@ func main() {
 	s := http.NewServer()
 	s.Domain = *domain
 	s.Addr = *addr
+	s.PageService = sqlite.NewPageService(db)
 	s.JournalService = sqlite.NewJournalService(db)
 	s.NowService = sqlite.NewNowService(db)
 	s.UserService = sqlite.NewUserService(db)

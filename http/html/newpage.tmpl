@@ -1,0 +1,21 @@
+{{define "newpage"}}
+{{template "header" .}}
+
+<main>
+  <div class="u-wrapper">
+    <div class="u-padding">
+    <form id="myform" action="/{{.}}" method="POST">
+    <div>
+	<p><label>Your page:</label></p>
+	<p><textarea rows="50" cols="100" name="content"></textarea></p>
+    </div>
+    <div>
+	<input type="submit" value="Send">
+    </div>
+    </form>
+    </div>
+  </div>
+</main>
+
+{{template "footer" .}}
+{{end}}

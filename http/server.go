@@ -39,6 +39,7 @@ type Server struct {
 	Domain string
 	Addr   string
 
+	PageService    journal.PageService
 	JournalService journal.JournalService
 	NowService     journal.NowService
 	UserService    journal.UserService
@@ -61,8 +62,8 @@ func NewServer() *Server {
 	router.Use(s.handleSession)
 	router.HandleFunc("/", s.handleIndex).Methods(http.MethodGet)
 	router.HandleFunc("/about", s.handleAboutView).Methods(http.MethodGet)
+	router.HandleFunc("/contact", s.handleContactView).Methods(http.MethodGet)
 	router.HandleFunc("/now", s.handleNowView).Methods(http.MethodGet)
-	router.HandleFunc("/post", s.handlePostView).Methods(http.MethodGet)
 	router.HandleFunc("/post/{permalink}", s.handlePostView).Methods(http.MethodGet)
 
 	// Register routes that require the user to NOT be authenticated
@@ -81,9 +82,12 @@ func NewServer() *Server {
 		r := router.PathPrefix("/").Subrouter()
 		r.Use(s.handleAuth)
 		r.HandleFunc("/about", s.handleAboutCreate).Methods(http.MethodPost)
+		r.HandleFunc("/contact", s.handleContactCreate).Methods(http.MethodPost)
+		r.HandleFunc("/contact/edit", s.handleContactEdit).Methods(http.MethodGet)
+		r.HandleFunc("/contact", s.handleContactUpdate).Methods(http.MethodPatch)
 		r.HandleFunc("/now", s.handleNowCreate).Methods(http.MethodPost)
 		r.HandleFunc("/post/{permalink}/edit", s.handlePostEdit).Methods(http.MethodGet)
-		r.HandleFunc("/post/{permalink}/edit", s.handlePostUpdate).Methods(http.MethodPost)
+		r.HandleFunc("/post/{permalink}/edit", s.handlePostUpdate).Methods(http.MethodPatch)
 		r.HandleFunc("/post/{permalink}", s.handlePostCreate).Methods(http.MethodPost)
 	}
 
