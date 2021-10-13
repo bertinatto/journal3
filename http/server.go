@@ -75,9 +75,9 @@ func NewServer() *Server {
 		r := router.PathPrefix("/").Subrouter()
 		r.Use(s.handleNoAuth)
 		r.HandleFunc("/signup", s.handleSingUpView).Methods(http.MethodGet)
-		r.HandleFunc("/signup2", s.handleSingUp).Methods(http.MethodPost)
+		r.HandleFunc("/signup", s.handleSingUp).Methods(http.MethodPost)
 		r.HandleFunc("/login", s.handleLoginView).Methods(http.MethodGet)
-		r.HandleFunc("/login2", s.handleLoginCreate).Methods(http.MethodPost)
+		r.HandleFunc("/login", s.handleLoginCreate).Methods(http.MethodPost)
 	}
 
 	// Register routes that require authentication
