@@ -3,14 +3,17 @@ package sqlite
 import (
 	"context"
 	"database/sql"
+	"embed"
 	"fmt"
-	"io/ioutil"
-	"path/filepath"
+	"io/fs"
 	"sort"
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 )
+
+//go:embed migration/*.sql
+var migrationFS embed.FS
 
 type Tx struct {
 	*sql.Tx
@@ -84,7 +87,7 @@ func (db *DB) migrate() error {
 		return fmt.Errorf("failed to create migrations table: %w", err)
 	}
 
-	names, err := filepath.Glob("sqlite/migration/*.sql")
+	names, err := fs.Glob(migrationFS, "migration/*.sql")
 	if err != nil {
 		return err
 	}
@@ -119,13 +122,13 @@ func (db *DB) migrateFile(name string) error {
 		return nil
 	}
 
-	buf, err := ioutil.ReadFile(name)
+	// Read and execute migration file.
+	buf, err := fs.ReadFile(migrationFS, name)
 	if err != nil {
 		return err
 	}
 
-	_, err = tx.Exec(string(buf))
-	if err != nil {
+	if _, err := tx.Exec(string(buf)); err != nil {
 		return err
 	}
 
