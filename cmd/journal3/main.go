@@ -10,7 +10,7 @@ import (
 
 	"github.com/bertinatto/journal3/http"
 	"github.com/bertinatto/journal3/sqlite"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 )
 
 const (
@@ -19,6 +19,7 @@ const (
 )
 
 func main() {
+	klog.InitFlags(nil)
 	file := flag.String("file", defaultDataFile, "file where data will persist")
 	domain := flag.String("domain", "", "domain")
 	addr := flag.String("listen", defaultAddress, "ip:port")
@@ -28,7 +29,7 @@ func main() {
 	_, err := os.Stat(dir)
 	if os.IsNotExist(err) {
 		log.Printf("isnotexist")
-		err := os.Mkdir(dir, 750)
+		err := os.Mkdir(dir, 0750)
 		if err != nil {
 			klog.Fatal(err)
 		}

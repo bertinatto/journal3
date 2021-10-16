@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"net"
 	"net/http"
+	_ "net/http/pprof"
 	"strings"
 	"time"
 
