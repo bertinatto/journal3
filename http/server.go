@@ -268,7 +268,8 @@ func ListenAndServerTLSRedirect(domain string) error {
 }
 
 func ListenAndServeDebug() error {
-	h := http.NewServeMux()
-	h.Handle("/metrics", promhttp.Handler())
-	return http.ListenAndServe(":6060", h)
+	r := mux.NewRouter().StrictSlash(true)
+	r.PathPrefix("/debug/").Handler(http.DefaultServeMux)
+	r.Handle("/metrics", promhttp.Handler())
+	return http.ListenAndServe(":6060", r)
 }
