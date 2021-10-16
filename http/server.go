@@ -11,12 +11,27 @@ import (
 	"github.com/gomarkdown/markdown"
 	"github.com/gomarkdown/markdown/parser"
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"golang.org/x/crypto/acme/autocert"
 	"k8s.io/klog/v2"
 
 	journal "github.com/bertinatto/journal3"
 	"github.com/bertinatto/journal3/http/assets"
 	"github.com/bertinatto/journal3/http/html"
+)
+
+var (
+	requestCount = promauto.NewCounterVec(prometheus.CounterOpts{
+		Name: "http_request_count",
+		Help: "Total number of requests by route",
+	}, []string{"method", "path"})
+
+	requestSeconds = promauto.NewCounterVec(prometheus.CounterOpts{
+		Name: "http_request_seconds",
+		Help: "Total amount of request time by route, in seconds",
+	}, []string{"method", "path"})
 )
 
 var tmpl = template.Must(template.New("").Funcs(
@@ -64,6 +79,7 @@ func NewServer() *Server {
 	router := s.router.PathPrefix("/").Subrouter()
 	router.Use(s.handleMethodOverride)
 	router.Use(s.handleSession)
+	router.Use(trackMetrics)
 	router.HandleFunc("/", s.handleIndex).Methods(http.MethodGet)
 	router.HandleFunc("/about", s.handleAboutView).Methods(http.MethodGet)
 	router.HandleFunc("/contact", s.handleContactView).Methods(http.MethodGet)
@@ -223,8 +239,35 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func trackMetrics(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		t := time.Now()
+
+		// Get template path from route
+		var tmpl string
+		route := mux.CurrentRoute(r)
+		if route != nil {
+			tmpl, _ = route.GetPathTemplate()
+		}
+
+		next.ServeHTTP(w, r)
+
+		// Track total time if template path is valid
+		if tmpl != "" {
+			requestCount.WithLabelValues(r.Method, tmpl).Inc()
+			requestSeconds.WithLabelValues(r.Method, tmpl).Add(float64(time.Since(t).Seconds()))
+		}
+	})
+}
+
 func ListenAndServerTLSRedirect(domain string) error {
 	return http.ListenAndServe(":80", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "https://"+domain, http.StatusFound)
 	}))
+}
+
+func ListenAndServeDebug() error {
+	h := http.NewServeMux()
+	h.Handle("/metrics", promhttp.Handler())
+	return http.ListenAndServe(":6060", h)
 }

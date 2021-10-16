@@ -73,6 +73,11 @@ func main() {
 		}()
 	}
 
+	// Metrics
+	go func() {
+		http.ListenAndServeDebug()
+	}()
+
 	// Wait for CTRL-C
 	<-ctx.Done()
 }
